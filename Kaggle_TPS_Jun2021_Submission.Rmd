@@ -1,0 +1,58 @@
+---
+title: "Kaggle.TPS.Jun2021"
+author: "Bao Ho"
+date: "7/25/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Loading library
+```{r}
+library(randomForest)
+```
+
+## Loading dataset
+```{r}
+train.data <- read.csv("train.csv/train.csv", header = T)
+test.data <- read.csv("test.csv/test.csv", header = T)
+```
+
+## Confirming for NA
+```{r}
+table(is.na(train.data))
+table(is.na(test.data))
+```
+
+## Creating subset of training data
+```{r}
+train.data.sample <- train.data[sample(nrow(train.data), 25000), ]
+row.names(train.data.sample) <- c()
+train.data.sample$target <- as.factor(train.data.sample$target)
+```
+
+## Creating random forest model
+
+```{r}
+model <- randomForest(target ~. - id, data = train.data.sample, ntree = 500)
+```
+
+## Predict on test data
+```{r}
+target <- predict(model, newdata = test.data, type = "prob")
+```
+
+## Output result
+```{r}
+id <- test.data$id
+output_df <- as.data.frame(id)
+output_df <- cbind(output_df, target)
+feature <- c("id", "Class_1", "Class_2", "Class_3", "Class_4", "Class_5",
+             "Class_6", "Class_7", "Class_8", "Class_9")
+colnames(output_df) <- feature
+
+write.csv(output_df, file = "Kaggle_Submission.csv", row.names = F)
+```
+
